@@ -5,7 +5,7 @@ Team **DatasavinG** (Kyiv) · NASA Space Apps Challenge 2026 · Challenge: *Crea
 
 By **Yelyzaveta Yerenburh**, National University “Zaporizhzhia Polytechnic”.
 
-**Live demo:** https://YOUR-GITHUB-USERNAME.github.io/pulse-and-proof/
+**Live demo:** https://github.com/yyerenburh/pulse-and-proof/
 
 ## The problem
 
