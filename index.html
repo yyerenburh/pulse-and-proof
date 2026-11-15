@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'; connect-src 'self' https://ccmc.gsfc.nasa.gov https://api.nasa.gov https://kauai.ccmc.gsfc.nasa.gov; object-src 'none'; base-uri 'none'; form-action 'self'">
+  <meta name="referrer" content="no-referrer">
+  <title>Pulse &amp; Proof · Trusted crew health monitoring</title>
+  <meta name="description" content="Astronaut health monitoring that the crew can trust when Earth is out of reach. NASA Space Apps Challenge 2026, team DatasavinG.">
+  <meta name="author" content="Yelyzaveta Yerenburh, team DatasavinG">
+  <meta name="ai-assistance" content="Icons and logo generated with Claude (Anthropic). Code edited and partly written with Claude; architecture, structure and core code by the author. Documentation drafted with Claude. See README, Authorship and use of AI.">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/shell.css">
+  <link rel="manifest" href="manifest.webmanifest">
+  <meta name="theme-color" content="#0b3d91">
+  <link rel="icon" type="image/png" href="icons/icon-192.png">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+</head>
+<body>
+  <section id="gate" class="gate" hidden></section>
+  <div class="shell" id="workspace" hidden>
+    <aside class="side">
+      <div class="brand"><span id="brand-logo"></span><div><b>Pulse &amp; Proof</b><span>Crew health you can trust</span></div></div>
+
+      <div class="side-block">
+        <div class="side-head"><span>Crew</span><button class="icon-btn" id="reg-btn" type="button" title="Register astronaut" aria-label="Register astronaut" hidden></button></div>
+        <ul class="crew-list" id="crew-list"></ul>
+      </div>
+
+      <nav class="nav" id="nav" aria-label="Sections"></nav>
+
+      <div class="side-foot">
+        <div id="who"></div>
+        <div class="side-actions">
+          <button class="btn ghost small" id="accounts-btn" type="button">Accounts</button>
+          <button class="btn ghost small" id="signout-btn" type="button">Switch user</button>
+        </div>
+      </div>
+    </aside>
+
+    <div class="main">
+      <header class="bar">
+        <div class="bar-title"><span id="page-icon"></span><div><h1 id="page-title">Overview</h1><p id="page-desc"></p></div></div>
+        <div class="bar-meta">
+          <span class="mission" id="mission"></span>
+          <label class="mode-pick"><span class="sr">Mission profile</span>
+            <select id="mode" aria-label="Mission profile"><option value="moon">Moon · 1.3 s delay</option><option value="mars">Mars · 12 min delay</option></select>
+          </label>
+          <span class="pill" id="link-pill">Earth link</span>
+          <button class="icon-btn" id="help-btn" type="button" title="How to use" aria-label="How to use"></button>
+        </div>
+      </header>
+
+      <div class="content">
+        <div class="banner" id="banner" hidden></div>
+        <section class="panel" id="empty" hidden></section>
+        <div class="person needs-crew" id="person">
+          <span id="person-avatar"></span>
+          <div class="person-id"><h2 id="person-name">—</h2><p class="muted small" id="person-meta"></p></div>
+          <div class="person-score" id="news"></div>
+          <div class="status-big" id="person-status"></div>
+          <div class="person-actions">
+            <button class="btn" id="measure-btn" type="button" hidden>Add measurement</button>
+            <button class="btn" id="edit-btn" type="button" hidden>Edit profile</button>
+            <button class="btn" id="report-btn" type="button">Signed report</button>
+          </div>
+        </div>
+        <section class="page" data-page="overview"><div id="ov"></div></section>
+        <section class="page needs-crew" data-page="vitals">
+          <div class="cards" id="cards"></div>
+          <section class="panel">
+            <div class="panel-head"><h2>Trend</h2><div class="tabs" id="trend-tabs" role="tablist"></div></div>
+            <div class="chart-wrap"><canvas id="trend" aria-label="Trend chart"></canvas></div>
+            <p class="small muted" id="trend-note"></p>
+          </section>
+        </section>
+        <section class="page needs-crew" data-page="routine">
+          <section class="panel narrow">
+            <div class="panel-head"><h2>Today's health tasks</h2><span class="level" id="level"></span></div>
+            <div class="xp"><div class="xp-bar" id="xp-bar"></div></div>
+            <p class="small muted" id="xp-text"></p>
+            <ul class="tasks" id="tasks"></ul>
+            <h3 class="sub">Badges</h3>
+            <div class="badges" id="badges"></div>
+          </section>
+        </section>
+        <section class="page needs-crew" data-page="record">
+          <section class="panel" id="record-panel">
+            <div class="panel-head">
+              <div><h2>Encrypted record</h2><p class="small muted">Private check-ins and clinical notes, stored with AES-256-GCM. Readable only by the astronaut and the medical team.</p></div>
+              <div class="btn-row">
+                <button class="btn ghost" id="raw-btn" type="button">Show what is stored</button>
+                <button class="btn" id="note-btn" type="button">Add clinical note</button>
+              </div>
+            </div>
+            <ul class="records" id="records"></ul>
+          </section>
+        </section>
+        <section class="page needs-crew" data-page="radiation">
+          <div class="two">
+            <section class="panel">
+              <h2>Radiation budget</h2>
+              <div class="dose" id="dose"></div>
+              <p class="small muted">Career limit: <span id="career-limit"></span> mSv (<a id="std-link" target="_blank" rel="noopener noreferrer">NASA-STD-3001</a>).</p>
+            </section>
+            <section class="panel">
+              <h2>Space weather</h2>
+              <div id="sw"></div>
+            </section>
+          </div>
+        </section>
+        <section class="page" data-page="alerts">
+          <section class="panel narrow">
+            <div class="panel-head"><h2>Alerts</h2><span class="muted small" id="alert-count"></span></div>
+            <ul class="alert-list" id="alert-list"></ul>
+          </section>
+        </section>
+        <section class="page" data-page="crew">
+          <div class="crew-cards" id="crew-cards"></div>
+        </section>
+        <section class="page" data-page="security">
+          <section class="panel narrow">
+            <div class="panel-head"><h2>Trust status</h2><button class="btn ghost" id="ledger-btn" type="button">View ledger</button></div>
+            <div id="sec"></div>
+          </section>
+        </section>
+        <section class="page needs-crew" data-page="lab">
+          <section class="panel lab-intro">
+            <h2>How the lab works</h2>
+            <ol class="lab-steps">
+              <li><b>Pick a crew member</b> in the list on the left. Most tests target the selected person.</li>
+              <li><b>Press a button.</b> Mission events change the simulated sensor signals to show how the crew is guided. Attacks play one threat from our threat model against the system.</li>
+              <li><b>Watch the result</b> in the lab log below: what was done, how long the system took to catch it, and how. Nothing here touches real data.</li>
+            </ol>
+          </section>
+          <div class="two lab-two">
+            <div class="stack">
+            <section class="panel">
+              <h2>Mission events</h2>
+              <ul class="lab-list">
+                <li><button class="btn" data-event="fever" type="button">Fever</button><span>Selected person: temperature and heart rate rise over about 20 s.</span></li>
+                <li><button class="btn" data-event="lowO2" type="button">Cabin air problem</button><span>Whole crew: blood oxygen falls, breathing speeds up.</span></li>
+                <li><button class="btn" data-event="spe" type="button">Solar particle event</button><span>Whole crew: dosimeters jump to more than 10 times the measured background.</span></li>
+                <li id="conj-row" hidden><button class="btn" data-event="conjunction" type="button" id="conj-btn">Solar conjunction</button><span>Mars only: no contact with Earth, as for two weeks every two years.</span></li>
+                <li><button class="btn ghost" data-event="day" type="button">Next mission day</button><span>Resets daily tasks and updates streaks.</span></li>
+                <li><button class="btn ghost" data-event="clear" type="button">Clear all</button><span>Ends every simulated event.</span></li>
+              </ul>
+            </section>
+            <section class="panel last-test" id="last-test">
+              <div class="panel-head"><h2>Last test</h2><span class="st-pill" id="lt-status"></span></div>
+              <div id="lt-body"><p class="muted small">Run an event or an attack. This panel shows what it does, which check stops it and where to see the result.</p></div>
+              <h3 class="layers-title">Checks in Pulse &amp; Proof</h3>
+              <ol class="layers" id="layers"></ol>
+            </section>
+            </div>
+            <section class="panel redteam">
+              <h2>Attacks</h2>
+              <ul class="lab-list">
+                <li title="ATT&amp;CK for ICS T0856 Spoof Reporting Message"><button class="btn danger" data-rt="freeze" type="button" id="rt-freeze">Freeze heart-rate sensor</button><span>A broken or hacked sensor keeps reporting the same normal value while the real one climbs.</span></li>
+                <li title="T0856, T1557 Adversary-in-the-Middle"><button class="btn danger" data-rt="fakeDevice" type="button">Fake device</button><span>An unregistered wearable sends readings for this person.</span></li>
+                <li title="T0856"><button class="btn danger" data-rt="forge" type="button">Forged signature</button><span>Readings use this person's device name but the wrong key.</span></li>
+                <li title="T1557 Adversary-in-the-Middle"><button class="btn danger" data-rt="replay" type="button">Replay reading</button><span>An old, genuinely signed reading is sent again.</span></li>
+                <li title="T1565.001 Stored Data Manipulation"><button class="btn danger" data-rt="tamper" type="button">Edit a stored reading</button><span>Someone with storage access lowers a past heart rate to hide a trend.</span></li>
+                <li title="Single-event upset (natural)"><button class="btn danger" data-rt="bitflip" type="button">Radiation bit flip</button><span>Space radiation flips one bit in an encrypted note.</span></li>
+                <li title="T1565.001 Stored Data Manipulation"><button class="btn danger" data-rt="reportTamper" type="button">Forge a health report</button><span>One number in a signed report is changed after signing.</span></li>
+                <li title="T1078 Valid Accounts"><button class="btn danger" data-rt="escalate" type="button">Astronaut raises own limit</button><span>The astronaut tries to silence their own alerts.</span></li>
+                <li title="T1078 Valid Accounts"><button class="btn danger" data-rt="opsPeek" type="button">Ops opens medical record</button><span>Mission operations tries to read private notes.</span></li>
+                <li title="T1110 Brute Force"><button class="btn danger" data-rt="guessPin" type="button">Guess a PIN</button><span>Someone with the tablet tries PINs for the medical officer.</span></li>
+                <li title="Jamming or blackout"><button class="btn danger" data-rt="link" type="button" id="rt-link">Cut Earth link</button><span>No contact with Earth. Press again to restore.</span></li>
+                <li title="T1565.002 Transmitted Data Manipulation"><button class="btn danger" data-rt="linkTamper" type="button">Tamper data in transit</button><span>The next data bundle to Earth is altered on the way.</span></li>
+                <li title="ICS T0855 Unauthorized Command Message"><button class="btn danger" data-rt="forgedCommand" type="button">Forged command from Earth</button><span>A fake "raise the heart-rate limit" command arrives from Earth.</span></li>
+              </ul>
+            </section>
+          </div>
+          <section class="panel">
+            <div class="panel-head"><h2>Lab log</h2><button class="btn ghost small" id="lablog-clear" type="button">Clear</button></div>
+            <ul class="lab-log" id="lab-log"><li class="empty">Run an event or an attack to see the result here.</li></ul>
+          </section>
+        </section>
+
+
+      </div>
+      <footer class="foot small muted">
+          Team DatasavinG, NASA Space Apps Challenge 2026. No crew data is built in; sensor readings are simulated. Prototype, not a medical device.
+          NASA data: <a href="https://www.nasa.gov/wp-content/uploads/2023/03/radiation-protection-technical-brief-ochmo.pdf" target="_blank" rel="noopener noreferrer">NASA-STD-3001</a>,
+          <a href="https://ccmc.gsfc.nasa.gov/tools/DONKI" target="_blank" rel="noopener noreferrer">DONKI</a>.
+          By Yelyzaveta Yerenburh. AI use: icons and logo are AI-generated; code and docs were edited with AI help (Claude). Details in the README.
+        </footer>
+    </div>
+  </div>
+
+  <dialog id="dlg">
+    <form method="dialog" class="dlg-inner">
+      <button class="dlg-close" value="close" aria-label="Close">×</button>
+      <div id="dlg-body"></div>
+    </form>
+  </dialog>
+
+  <div id="toasts" aria-live="polite"></div>
+
+  <script src="vendor/chart.umd.min.js"></script>
+  <script src="js/config.js"></script>
+  <script src="js/icons.js"></script>
+  <script src="js/sim.js"></script>
+  <script src="js/nasa.js"></script>
+  <script src="js/tasks.js"></script>
+  <script src="js/security.js"></script>
+  <script src="js/extras.js"></script>
+  <script src="js/accounts.js"></script>
+  <script src="js/redteam.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
